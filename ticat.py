@@ -9,7 +9,7 @@ class Env:
 		self._pairs = {}
 		self._keys = []
 		self._prefix_for_get = ''
-		self._deleted_keys = []
+		self._deleted_keys = set()
 		self._modified_keys = set()
 		if not parse_from_env_file:
 			return
@@ -63,7 +63,11 @@ class Env:
 
 	def dump(self):
 		for k in self._keys:
-			print(k[len(self._prefix_for_get):] + ' (' + k + ') = ' + self._pairs[k])
+			short = k[len(self._prefix_for_get):]
+			if short != k:
+				print(short + ' (' + k + ') = ' + self._pairs[k])
+			else:
+				print(k + ' = ' + self._pairs[k])
 
 	def keys(self):
 		res = []
@@ -75,6 +79,12 @@ class Env:
 		key = self._prefix_for_get + key
 		if key not in self._pairs:
 			return default
+		return self._pairs[key]
+
+	def must_get(self, key):
+		key = self._prefix_for_get + key
+		if key not in self._pairs:
+			raise Exception('key \'' + key + '\' not in env')
 		return self._pairs[key]
 
 	def get(self, key):
@@ -97,6 +107,7 @@ class Env:
 				env._keys.append(k)
 				env._pairs[k] = self._pairs[k]
 				del self._pairs[k]
+				self._deleted_keys.add(k)
 		return env
 
 	def with_prefix(self, prefix):
@@ -122,14 +133,15 @@ class Env:
 			if k != key:
 				self._keys.append(k)
 			else:
-				self._deleted_keys.append(k)
+				self._deleted_keys.add(k)
 				del self._pairs[k]
 				deleted = True
 		if not deleted:
 			raise Exception('key ' + origin + ' (' + key + ') not found')
 
 	def delete_all(self):
-		self._deleted_keys += self.keys
+		for key in self.keys:
+			self._deleted_keys.add(key)
 		self._keys = []
 
 	def set(self, key, val):
@@ -140,3 +152,5 @@ class Env:
 	def modified(self):
 		return len(self._modified_keys) + len(self._deleted_keys) > 0
 
+	def flush(self):
+		Env.write_to_env_file(self)
