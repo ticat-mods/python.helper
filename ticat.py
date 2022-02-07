@@ -5,15 +5,17 @@ import os
 from copy import deepcopy
 
 class Env:
-	def __init__(self, parse_from_env_file = True):
+	def __init__(self, parse_from_env_file = True, parse_from_stdin = False):
 		self._pairs = {}
 		self._keys = []
 		self._prefix_for_get = ''
 		self._deleted_keys = set()
 		self._modified_keys = set()
-		if not parse_from_env_file:
-			return
-		self._parse_from_env_file()
+
+		if parse_from_env_file:
+			self._parse_from_env_file()
+		elif parse_from_stdin:
+			self._parse_from(sys.stdin)
 
 	def _parse_from_env_file(self):
 		if len(sys.argv) <= 1:
