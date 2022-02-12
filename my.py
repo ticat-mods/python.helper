@@ -21,6 +21,9 @@ def my_exe(host, port, user, db, query, fmt):
 		cmd = subprocess.Popen(args, stdout=subprocess.PIPE, encoding='utf8')
 	cmd.wait()
 	if cmd.returncode != 0:
+		sys.stderr.write('***\n')
+		sys.stderr.write(query)
+		sys.stderr.write('\n***\n')
 		sys.stderr.write(cmd.stdout.read())
 		raise Exception('os.wait: exit status != 0')
 
