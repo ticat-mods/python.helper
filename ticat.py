@@ -95,21 +95,25 @@ class Env:
 	def has(self, key):
 		return (self._prefix_for_get + key) in self._pairs
 
-	def detach_prefix(self, prefix):
+	def detach_prefix(self, prefix, delete_origin = True):
 		prefix = self._prefix_for_get + prefix
 		self._keys, keys = [], self._keys
+
 		env = Env(False)
 		env._deleted_keys = deepcopy(self._deleted_keys)
 		env._modified_keys = deepcopy(self._modified_keys)
 		env._prefix_for_get = prefix
+
 		for k in keys:
 			if not k.startswith(prefix):
 				self._keys.append(k)
 			else:
 				env._keys.append(k)
 				env._pairs[k] = self._pairs[k]
-				del self._pairs[k]
-				self._deleted_keys.add(k)
+				if delete_origin:
+					del self._pairs[k]
+					self._deleted_keys.add(k)
+
 		return env
 
 	def with_prefix(self, prefix):
