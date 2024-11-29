@@ -2,7 +2,7 @@ import subprocess
 import sys
 
 # Use os executing to avoid the dependency of mysql.connector
-def my_exe(host, port, user, pp, db, query, fmt):
+def my_exe(host, port, user, pp, db, query, fmt='', ca=''):
 	if len(fmt) == 0:
 		fmt = '--table'
 	else:
@@ -13,7 +13,10 @@ def my_exe(host, port, user, pp, db, query, fmt):
 		}[fmt]
 	query = ' '.join(query.split())
 
-	args = ['mysql', '-h', host, '-P', port, '-u', user, '--database=%s' % db, '--comments', fmt, '-e', query]
+	args = ['mysql', '-h', host, '-P', port, '-u', user, '--database=%s' % db]
+	if len(ca) != 0:
+		args.append('--ssl-ca='+ca)
+	args.extend(['--comments', fmt, '-e', query])
 
 	if sys.version_info.major == 2:
 		cmd = subprocess.Popen(args, stdout=subprocess.PIPE, env={'MYSQL_PWD': pp})
